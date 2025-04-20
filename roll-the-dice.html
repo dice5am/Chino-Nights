@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roll the Dice</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎲</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🎲</text></svg>">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Roll the Dice">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a1a">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Playfair Display', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1a1a1a;
+            background-image: linear-gradient(to bottom, #1a1a1a, #2c2c2c), 
+                              url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50l30 30M50 50L20 80M50 50L80 20M50 50L20 20' stroke='%23222222' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+            background-blend-mode: overlay;
+            color: #f8f8f8;
+        }
+        @keyframes shine {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        .game-container {
+            background-color: #0a5c36; /* Casino green felt - smooth */
+            padding: 30px 40px 50px 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4), inset 0 0 80px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            border: 8px solid #f8d64e; /* Gold border */
+            position: relative;
+            overflow: hidden;
+            max-width: 90%;
+            width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .game-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 50l30 30M50 50L20 80M50 50L80 20M50 50L20 20' stroke='%230a4c2e' stroke-width='0.5' fill='none'/%3E%3C/svg%3E");
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        h1 {
+            color: #f8d64e; /* Gold color */
+            margin: 0 0 30px 0;
+            text-shadow: 0 3px 5px rgba(0, 0, 0, 0.6);
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 3px;
+            font-weight: 700;
+            font-size: 2.8em;
+            position: relative;
+            display: inline-block;
+            text-transform: uppercase;
+            padding-bottom: 15px;
+        }
+        
+        h1::before, h1::after {
+            content: '♦';
+            color: #f8d64e;
+            position: absolute;
+            font-size: 0.8em;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        h1::before {
+            left: -40px;
+        }
+        
+        h1::after {
+            right: -40px;
+        }
+        
+        h1 span {
+            display: block;
+            font-size: 0.6em;
+            letter-spacing: 10px;
+            margin-top: 5px;
+            color: rgba(248, 214, 78, 0.8);
+        }
+        
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+            width: 100%;
+        }
+        
+        .die {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border-radius: 18px;
+            border: 2px solid #800000; /* Maroon border */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .die::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 100%);
+            border-radius: 13px;
+            pointer-events: none;
+        }
+        
+        .die.rolling {
+            animation: rolling 0.3s linear infinite;
+        }
+        
+        @keyframes rolling {
+            0% { transform: rotate(0deg) translateY(0); }
+            25% { transform: rotate(8deg) translateY(-5px); }
+            50% { transform: rotate(0deg) translateY(0); }
+            75% { transform: rotate(-8deg) translateY(-5px); }
+            100% { transform: rotate(0deg) translateY(0); }
+        }
+        
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px 15px 40px 15px;
+                width: 90%;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+            
+            h1::before, h1::after {
+                display: none;
+            }
+            
+            .dice-container {
+                gap: 20px;
+            }
+            
+            .die {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .dot {
+                width: 18px;
+                height: 18px;
+            }
+            
+            button {
+                padding: 12px 28px;
+                font-size: 18px;
+            }
+        }
+        
+        button.disabled {
+            opacity: 0.5;
+            transform: translateY(0) !important;
+            cursor: not-allowed;
+            background-color: rgba(128, 0, 0, 0.5); /* More transparent when disabled */
+        }
+        
+        button.disabled::after {
+            opacity: 0;
+        }
+        
+        .total {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 25px 0;
+            color: #f8d64e; /* Gold text */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.4));
+            padding: 12px 30px;
+            border-radius: 50px;
+            display: inline-block;
+            font-family: 'Playfair Display', serif;
+            border: 1px solid rgba(248, 214, 78, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        button {
+            background-color: rgba(128, 0, 0, 0.85); /* Darker red from dice, slightly transparent */
+            color: #f8d64e; /* Gold text */
+            border: 2px solid #f8d64e; /* Gold border */
+            border-radius: 50px;
+            padding: 14px 32px;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Playfair Display', serif;
+            z-index: 1;
+            margin-top: 10px;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+            z-index: -1;
+        }
+        
+        button::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #800000; /* Solid dark red */
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -2;
+            border-radius: 50px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(248, 214, 78, 0.5);
+        }
+        
+        button:hover::after {
+            opacity: 1;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .dice-dots {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .dot {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(145deg, #9a0000, #800000);
+            border-radius: 50%;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(255, 255, 255, 0.1);
+        }
+        
+        .dot::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 5px;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+        }
+        
+        /* Dot positions for die 1 - Centered */
+        .die-1 .dot {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        /* Dot positions for die 2 - Better spacing */
+        .die-2 .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .die-2 .dot:nth-child(2) {
+            bottom: 25%;
+            right: 25%;
+            transform: translate(50%, 50%);
+        }
+        
+        /* Dot positions for die 3 - Better spacing */
+        .die-3 .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .die-3 .dot:nth-child(2) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .die-3 .dot:nth-child(3) {
+            bottom: 25%;
+            right: 25%;
+            transform: translate(50%, 50%);
+        }
+        
+        /* Dot positions for die 4 - Better spacing */
+        .die-4 .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .die-4 .dot:nth-child(2) {
+            top: 25%;
+            right: 25%;
+            transform: translate(50%, -50%);
+        }
+        .die-4 .dot:nth-child(3) {
+            bottom: 25%;
+            left: 25%;
+            transform: translate(-50%, 50%);
+        }
+        .die-4 .dot:nth-child(4) {
+            bottom: 25%;
+            right: 25%;
+            transform: translate(50%, 50%);
+        }
+        
+        /* Dot positions for die 5 - Better spacing */
+        .die-5 .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .die-5 .dot:nth-child(2) {
+            top: 25%;
+            right: 25%;
+            transform: translate(50%, -50%);
+        }
+        .die-5 .dot:nth-child(3) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .die-5 .dot:nth-child(4) {
+            bottom: 25%;
+            left: 25%;
+            transform: translate(-50%, 50%);
+        }
+        .die-5 .dot:nth-child(5) {
+            bottom: 25%;
+            right: 25%;
+            transform: translate(50%, 50%);
+        }
+        
+        /* Dot positions for die 6 - Improved spacing to avoid overlapping */
+        .die-6 .dot:nth-child(1) {
+            top: 25%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .die-6 .dot:nth-child(2) {
+            top: 25%;
+            right: 25%;
+            transform: translate(50%, -50%);
+        }
+        .die-6 .dot:nth-child(3) {
+            top: 50%;
+            left: 25%;
+            transform: translate(-50%, -50%);
+        }
+        .die-6 .dot:nth-child(4) {
+            top: 50%;
+            right: 25%;
+            transform: translate(50%, -50%);
+        }
+        .die-6 .dot:nth-child(5) {
+            bottom: 25%;
+            left: 25%;
+            transform: translate(-50%, 50%);
+        }
+        .die-6 .dot:nth-child(6) {
+            bottom: 25%;
+            right: 25%;
+            transform: translate(50%, 50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>ROLL THE DICE<span>CASINO ROYALE</span></h1>
+        <div class="dice-container">
+            <div class="die" id="die1">
+                <div class="dice-dots"></div>
+            </div>
+            <div class="die" id="die2">
+                <div class="dice-dots"></div>
+            </div>
+        </div>
+        <div class="total" id="total">Total: 0</div>
+        <button id="rollButton">ROLL</button>
+    </div>
+    
+    <div class="copyright">© Chino Nights</div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const die1 = document.getElementById('die1');
+            const die2 = document.getElementById('die2');
+            const totalElement = document.getElementById('total');
+            const rollButton = document.getElementById('rollButton');
+            
+            // Initialize dice
+            updateDie(die1, 1);
+            updateDie(die2, 1);
+            
+            rollButton.addEventListener('click', rollDice);
+            
+            function rollDice() {
+                // Play click sound
+                const clickSound = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAASAAAeMwAUFBQUFBQUFBQUFDMzMzMzMzMzMzMzM1ZWVlZWVlZWVlZWVlZ5eXl5eXl5eXl5eXl5srKysrKysrKysrKysszMzMzMzMzMzMzMzMzm5ubm5ubm5ubm5ubm//////////////9MYXZmNTguNzYuMTAwAAAAAAAAAAAAAAD/+1DEAAAA4QXtdTEUAGMg3u7vYigAAADGAAAACG5GWERnTeHMiIVGdRtReC/F8MsJw/3GxgSLHNxnLAMDAxgYGEQODn8P7gOcAgQQwchx/vhhCGPgvBw/5hjCEIb//4YQhDu4OGP/+GEIQT//+1DCzgAAACAAACAAAAAAAAAAACAAAAA4fx/8MP/+GMPg5///DB8HwfB8HwQQQQQQABhMQU1FMy45OS41VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/7UMTWA8AAAaQAAAABrYBQAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==");
+                clickSound.play();
+                
+                // Disable button during roll
+                rollButton.disabled = true;
+                rollButton.classList.add('disabled');
+                
+                // Start rolling animation
+                die1.classList.add('rolling');
+                die2.classList.add('rolling');
+                
+                // Rapidly change dice values for animation effect
+                let animationInterval = setInterval(() => {
+                    const randomValue1 = Math.floor(Math.random() * 6) + 1;
+                    const randomValue2 = Math.floor(Math.random() * 6) + 1;
+                    
+                    updateDie(die1, randomValue1);
+                    updateDie(die2, randomValue2);
+                }, 100);
+                
+                // Stop after a delay
+                setTimeout(() => {
+                    clearInterval(animationInterval);
+                    
+                    // Get final random values
+                    const finalValue1 = Math.floor(Math.random() * 6) + 1;
+                    const finalValue2 = Math.floor(Math.random() * 6) + 1;
+                    const total = finalValue1 + finalValue2;
+                    
+                    // Update dice and total
+                    updateDie(die1, finalValue1);
+                    updateDie(die2, finalValue2);
+                    
+                    // Update total with animation
+                    totalElement.style.transform = "scale(1.1)";
+                    totalElement.style.boxShadow = "0 0 15px rgba(248, 214, 78, 0.5)";
+                    setTimeout(() => {
+                        totalElement.textContent = `Total: ${total}`;
+                        setTimeout(() => {
+                            totalElement.style.transform = "scale(1)";
+                            totalElement.style.boxShadow = "0 4px 8px rgba(0, 0, 0, 0.2)";
+                        }, 300);
+                    }, 100);
+                    
+                    // Stop animation
+                    die1.classList.remove('rolling');
+                    die2.classList.remove('rolling');
+                    
+                    // Re-enable button with animation
+                    setTimeout(() => {
+                        rollButton.disabled = false;
+                        rollButton.classList.remove('disabled');
+                        
+                        // Play result sound
+                        const resultSound = new Audio("data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQwAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAAlAAAyQgAICBAQGBgYICAgKCgwMDA4OEBAQEhISFBQWFhYYGBoaGhwcHh4eICAiIiIkJCQmJiYoKCosLC4uMDAwMjIyNDQ0NjY4ODg6Ojo8PD4+Pj//wAAADJMYXZmNTguNzYuMTAwAAAAAAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/7UMQAAAaAfXR1MQAM34Ouqr7gAQIAICAzDH7mcJjJ5PCY1EcTiMgkz4Q4mVYQ4mQ4Q4nCYTCfEOJ8Q41EMIWDQ0w5BGJJAhxHJ8nlSpXwQFspdXpdLpPnKlSpUqVK+lSpUqV9KlSiRH39/f39/f39/f39/pRIjQan0kkSpKnlgFctdlX4pn/FGxaR//tQxBsADLVvc/2JAACOkW7/s0AAtgkIABqtKfRxE5E5EoiF5EhkGsiIhYj1ZGHFkBCIJgcYHGABwIQDhwIPDCww0WNDDxw0cCAOJmAcXQdx1B4qg/kKHylD8eYfjzC+UkL5KQvD8PwfB+D8Hw/B+H4Ph/D8Hw/B8Hw/B/D8J9aJRKJRKJRKXtYLBYLBYKl7VpTEFNRTMuOTku");
+                        resultSound.play();
+                    }, 300);
+                }, 1000);
+            }
+            
+            function updateDie(dieElement, value) {
+                // Clear existing dots
+                const dotsContainer = dieElement.querySelector('.dice-dots');
+                dotsContainer.innerHTML = '';
+                
+                // Remove old classes
+                dieElement.classList.remove('die-1', 'die-2', 'die-3', 'die-4', 'die-5', 'die-6');
+                
+                // Add new class based on value
+                dieElement.classList.add(`die-${value}`);
+                
+                // Add appropriate number of dots
+                for (let i = 0; i < value; i++) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    dotsContainer.appendChild(dot);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
